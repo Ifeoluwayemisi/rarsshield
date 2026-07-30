@@ -1,0 +1,6 @@
+.env
+*.joblib
+__pycache__/
+recipient_check_dataset.csv
+*.pyc
+.venv/
