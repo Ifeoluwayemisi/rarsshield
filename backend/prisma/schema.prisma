@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String         @id @default(uuid())
+  email           String         @unique
+  password        String
+  name            String?
+  role            Role           @default(USER)
+  isEmailVerified Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  analyses        Analysis[]
+  auditLogs       AuditLog[]
+  chats           Chat[]
+  notifications   Notification[]
+  refreshTokens   RefreshToken[]
+  reports         Report[]
+  settings        Settings?
+  transactions    Transaction[]  @relation("userTransactions")
+}
+
+model RefreshToken {
+  id           String   @id @default(uuid())
+  token        String   @unique
+  userId       String
+  revoked      Boolean  @default(false)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  replacedById String?
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model Analysis {
+  id             String       @id @default(uuid())
+  userId         String
+  type           AnalysisType
+  payload        Json
+  riskScore      Float
+  riskLevel      RiskLevel
+  explanation    String
+  recommendation String
+  confidence     Float
+  meta           Json?
+  createdAt      DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id])
+}
+
+model Transaction {
+  id                String            @id @default(uuid())
+  userId            String
+  providerReference String?
+  amount            Decimal
+  currency          String            @default("USD")
+  status            TransactionStatus @default(PENDING)
+  description       String?
+  beneficiary       String?
+  metadata          Json?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  user              User              @relation("userTransactions", fields: [userId], references: [id])
+}
+
+model Wallet {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  balance       Decimal
+  currency      String   @default("USD")
+  provider      String   @default("BMONI")
+  status        String   @default("ACTIVE")
+  bmoniUserId   String?  @unique
+  smartWalletId String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model FinancialInsight {
+  id        String   @id @default(uuid())
+  userId    String
+  category  String
+  title     String
+  summary   String
+  score     Float
+  severity  String
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id          String              @id @default(uuid())
+  userId      String
+  channel     NotificationChannel
+  title       String
+  message     String
+  data        Json?
+  delivered   Boolean             @default(false)
+  deliveredAt DateTime?
+  createdAt   DateTime            @default(now())
+  user        User                @relation(fields: [userId], references: [id])
+}
+
+model Chat {
+  id        String   @id @default(uuid())
+  userId    String
+  query     String
+  response  String
+  context   Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Report {
+  id        String     @id @default(uuid())
+  userId    String
+  type      ReportType
+  subject   String
+  details   String
+  status    String     @default("OPEN")
+  metadata  Json?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id])
+}
+
+model Settings {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  notificationEmail Boolean  @default(true)
+  notificationSms   Boolean  @default(false)
+  privacyMode       Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  resource  String
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AnalysisType {
+  TEXT
+  LINK
+  EMAIL
+  SMS
+  CALL
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  PUSH
+}
+
+enum ReportType {
+  FRAUD
+  SCAM
+  USER
+}
