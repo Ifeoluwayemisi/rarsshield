@@ -30,17 +30,15 @@ const verifyEmailSchema = z.object({
   token: z.string().min(1),
 });
 
-const googleAuthSchema = z.object({
-  idToken: z.string().min(1),
-  name: z.string().optional(),
-});
-
-export function validateSignup(payload: unknown) {
-  return signupSchema.parse(payload);
-}
 
 export function validateLogin(payload: unknown) {
   return loginSchema.parse(payload);
+}
+
+
+
+export function validateSignup(payload: unknown) {
+  return signupSchema.parse(payload);
 }
 
 export function validateRefresh(payload: unknown) {
@@ -63,6 +61,4 @@ export function validateVerifyEmail(payload: unknown) {
   return verifyEmailSchema.parse(payload);
 }
 
-export function validateGoogleAuth(payload: unknown) {
-  return googleAuthSchema.parse(payload);
-}
+

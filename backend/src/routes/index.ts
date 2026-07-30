@@ -6,6 +6,8 @@ import analysisRouter from "../modules/scam-analysis/analysis.controller";
 import walletRouter from "../modules/wallet/wallet.controller";
 import financialInsightsRouter from "../modules/financial-insights/financial-insights.controller";
 import webhooksRouter from "../modules/webhooks/webhooks.controller";
+import swaggerRouter from "../routes/swagger";
+import settingsRouter from "../modules/users/settings.controller";
 
 const router = Router();
 
@@ -14,10 +16,12 @@ router.get("/health", (_req, res) =>
 );
 router.use("/auth", authRouter);
 router.use("/users", userRouter);
+router.use("/settings", settingsRouter);
 router.use("/transactions", transactionsRouter);
 router.use("/analysis", analysisRouter);
 router.use("/wallet", walletRouter);
 router.use("/financial-insights", financialInsightsRouter);
 router.use("/webhooks", webhooksRouter);
+router.use("/docs", swaggerRouter);
 
 export default router;

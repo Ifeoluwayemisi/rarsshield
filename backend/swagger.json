@@ -1,0 +1,54 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "RARS Shield API",
+    "version": "1.0.0",
+    "description": "Sandbox API for the RARS Shield backend. Includes auth, users, transactions, analysis, wallet, financial insights, and webhook endpoints."
+  },
+  "servers": [{ "url": "http://localhost:4000/api" }],
+  "paths": {
+    "/auth/signup": { "post": { "summary": "Register a new user", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SignupRequest" } } } }, "responses": { "201": { "description": "Created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } } } } } } },
+    "/auth/login": { "post": { "summary": "Email/password login", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } } } }, "responses": { "200": { "description": "Success", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } } } } } } },
+    "/auth/forgot-password": { "post": { "summary": "Send password‑reset email", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ForgotPasswordRequest" } } } }, "responses": { "200": { "description": "Email sent" } } } },
+    "/auth/verify-email": { "get": { "summary": "HTML page confirming email verification", "parameters": [{ "name": "token", "in": "query", "required": true, "schema": { "type": "string" } }], "responses": { "200": { "description": "HTML page" } } }, "post": { "summary": "Verify email token (JSON)", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/VerifyEmailRequest" } } } }, "responses": { "200": { "description": "Verified", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } } } } } } },
+    "/auth/reset-password": { "get": { "summary": "HTML page with password‑reset form", "parameters": [{ "name": "token", "in": "query", "required": true, "schema": { "type": "string" } }], "responses": { "200": { "description": "HTML page" } } }, "post": { "summary": "Set new password using reset token", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ResetPasswordRequest" } } } }, "responses": { "200": { "description": "Password updated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } } } } } } },
+    "/auth/refresh": { "post": { "summary": "Refresh JWT", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RefreshRequest" } } } }, "responses": { "200": { "description": "New tokens", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } } } } } } },
+    "/auth/logout": { "post": { "summary": "Invalidate refresh token", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LogoutRequest" } } } }, "responses": { "200": { "description": "Logged out" } } } },
+    "/users/me": { "get": { "summary": "Current user profile", "security": [{ "bearerAuth": [] }], "responses": { "200": { "description": "Profile", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserProfile" } } } } } } },
+    "/users/settings": { "get": { "summary": "Get user settings", "security": [{ "bearerAuth": [] }], "responses": { "200": { "description": "Settings", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserSettings" } } } } } }, "put": { "summary": "Update user settings", "security": [{ "bearerAuth": [] }], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserSettings" } } } }, "responses": { "200": { "description": "Updated" } } } },
+    "/transactions": { "get": { "summary": "List transactions", "security": [{ "bearerAuth": [] }], "responses": { "200": { "description": "Array", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Transaction" } } } } } } }, "post": { "summary": "Create transaction", "security": [{ "bearerAuth": [] }], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TransactionCreate" } } } }, "responses": { "201": { "description": "Created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Transaction" } } } } } } },
+    "/analysis": { "post": { "summary": "Run AI scam analysis", "security": [{ "bearerAuth": [] }], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AnalysisRequest" } } } }, "responses": { "200": { "description": "Result", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AnalysisResult" } } } } } } },
+    "/wallet/sync": { "post": { "summary": "Pull latest balances from BMONI and upsert", "security": [{ "bearerAuth": [] }], "requestBody": { "required": false, "content": {} }, "responses": { "200": { "description": "Sync completed" } } } },
+    "/wallet/me": { "get": { "summary": "Return the user’s wallet record", "security": [{ "bearerAuth": [] }], "responses": { "200": { "description": "Wallet", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Wallet" } } } } } } },
+    "/wallet/info": { "get": { "summary": "Return BMONI health/info", "security": [{ "bearerAuth": [] }], "responses": { "200": { "description": "Info", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BMONIInfo" } } } } } } },
+    "/wallet/onboard": { "post": { "summary": "Run full BMONI onboarding flow", "security": [{ "bearerAuth": [] }], "requestBody": { "required": false, "content": {} }, "responses": { "200": { "description": "Onboarded" } } } },
+    "/wallet/webhook": { "post": { "summary": "BMONI webhook receiver", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/WebhookPayload" } } } }, "responses": { "200": { "description": "OK" } } } },
+    "/financial-insights/summary": { "get": { "summary": "Weekly / monthly spending summary (AI‑generated)", "security": [{ "bearerAuth": [] }], "responses": { "200": { "description": "Insights", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/InsightsResponse" } } } } } } },
+    "/financial-insights/weekly": { "get": { "summary": "Weekly insights", "security": [{ "bearerAuth": [] }], "responses": { "200": { "description": "Weekly", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/InsightsResponse" } } } } } } },
+    "/financial-insights/unusual": { "get": { "summary": "Detect unusual spending patterns", "security": [{ "bearerAuth": [] }], "responses": { "200": { "description": "Unusual", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/InsightsResponse" } } } } } } },
+    "/health": { "get": { "summary": "Health check", "responses": { "200": { "description": "OK", "content": { "application/json": { "schema": { "type": "object", "properties": { "status": { "type": "string" }, "service": { "type": "string" } } } } } } } } }
+  },
+  "components": {
+    "securitySchemes": { "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" } },
+    "schemas": {
+      "SignupRequest": { "type": "object", "required": ["email","password"], "properties": { "email": { "type": "string", "format": "email" }, "password": { "type": "string", "minLength": 6 }, "name": { "type": "string" } } },
+      "LoginRequest": { "type": "object", "required": ["email","password"], "properties": { "email": { "type": "string", "format": "email" }, "password": { "type": "string" } } },
+      "AuthResponse": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "properties": { "accessToken": { "type": "string" }, "refreshToken": { "type": "string" } } } } },
+      "ForgotPasswordRequest": { "type": "object", "required": ["email"], "properties": { "email": { "type": "string", "format": "email" } } },
+      "VerifyEmailRequest": { "type": "object", "required": ["token"], "properties": { "token": { "type": "string" } } },
+      "ResetPasswordRequest": { "type": "object", "required": ["token","password"], "properties": { "token": { "type": "string" }, "password": { "type": "string", "minLength": 6 } } },
+      "RefreshRequest": { "type": "object", "required": ["refreshToken"], "properties": { "refreshToken": { "type": "string" } } },
+      "LogoutRequest": { "type": "object", "required": ["refreshToken"], "properties": { "refreshToken": { "type": "string" } } },
+      "UserProfile": { "type": "object", "properties": { "id": { "type": "string" }, "email": { "type": "string" }, "name": { "type": "string" } } },
+      "UserSettings": { "type": "object", "properties": { "notifications": { "type": "boolean" }, "theme": { "type": "string" } } },
+      "Transaction": { "type": "object", "properties": { "id": { "type": "string" }, "amount": { "type": "number" }, "currency": { "type": "string" }, "status": { "type": "string" } } },
+      "TransactionCreate": { "type": "object", "required": ["amount","currency"], "properties": { "amount": { "type": "number" }, "currency": { "type": "string" }, "beneficiary": { "type": "string" }, "reference": { "type": "string" } } },
+      "AnalysisRequest": { "type": "object", "required": ["content"], "properties": { "content": { "type": "string" }, "type": { "type": "string", "enum": ["text","link","email","sms","call"] } } },
+      "AnalysisResult": { "type": "object", "properties": { "riskScore": { "type": "number" }, "flags": { "type": "array", "items": { "type": "string" } } } },
+      "WebhookPayload": { "type": "object", "properties": { "event": { "type": "string" }, "data": { "type": "object" } } },
+      "InsightsResponse": { "type": "object", "properties": { "summary": { "type": "string" }, "details": { "type": "object" } } },
+      "Wallet": { "type": "object", "properties": { "balance": { "type": "number" }, "currency": { "type": "string" } } },
+      "BMONIInfo": { "type": "object", "properties": { "status": { "type": "string" }, "version": { "type": "string" } } }
+    }
+  }
+}

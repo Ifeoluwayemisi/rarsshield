@@ -8,7 +8,6 @@ import {
   validateForgotPassword,
   validateResetPassword,
   validateVerifyEmail,
-  validateGoogleAuth,
 } from "../../validators/auth.validator";
 
 const authService = new AuthService();
@@ -26,11 +25,7 @@ router.post("/login", async (req: Request, res: Response) => {
   res.json({ success: true, data: result });
 });
 
-router.post("/google", async (req: Request, res: Response) => {
-  const data = validateGoogleAuth(req.body);
-  const result = await authService.googleAuth(data);
-  res.json({ success: true, data: result });
-});
+
 
 router.post("/forgot-password", async (req: Request, res: Response) => {
   const data = validateForgotPassword(req.body);

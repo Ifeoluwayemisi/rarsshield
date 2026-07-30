@@ -1,12 +1,19 @@
 import axios, { AxiosInstance } from "axios";
+import config from "../../../config";
 
 export class BmoniClient {
   private http: AxiosInstance;
 
   constructor() {
     const baseURL =
-      process.env.BMONI_API_BASE_URL || "https://embedded-dev.bmoni.com";
-    const apiKey = process.env.BMONI_API_KEY || "";
+      config.bmoni.baseUrl ||
+      process.env.BMONI_API_BASE_URL ||
+      process.env.BMONI_BASE_URL ||
+      "https://embedded-dev.bmoni.com";
+    const apiKey =
+      config.bmoni.apiKey ||
+      process.env.BMONI_API_KEY ||
+      "pk_a025cacbf33a_76fb864113f3540909de5b1da39cc146906e35b1c6d4d1e4";
 
     this.http = axios.create({
       baseURL,

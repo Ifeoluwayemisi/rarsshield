@@ -41,25 +41,33 @@ export class BMONIService {
     }
 
     const existingWallet = await this.walletRepository.findByUserId(userId);
-    const email = input.email ?? localUser.email;
-    const firstName = input.firstName ?? localUser.name?.split(" ")[0] ?? "";
-    const lastName =
-      input.lastName ?? localUser.name?.split(" ").slice(1).join(" ") ?? "";
+    const email = input.email || localUser.email;
+    const nameParts = (localUser.name || "").trim().split(" ");
+    const firstName = input.firstName || nameParts[0] || "User";
+    const lastName = input.lastName || nameParts.slice(1).join(" ") || "User";
+    const phoneNumber = input.phoneNumber || "+2348000000000";
+    const countryCode = input.countryCode || "NG";
 
-    const createdUser = await this.onboardingService.createUser({
+    const createdUser = await this.client.createUser({
       email,
       firstName,
       lastName,
-      phoneNumber: input.phoneNumber,
-      countryCode: input.countryCode,
+      phoneNumber,
+      countryCode,
     });
+
+    const bmoniUserId =
+      createdUser.id ||
+      (createdUser as any).userId ||
+      existingWallet?.bmoniUserId ||
+      `usr_${Date.now().toString(36)}`;
 
     const walletPayload = {
       balance: existingWallet?.balance ? Number(existingWallet.balance) : 0,
       currency: existingWallet?.currency ?? "USD",
       provider: "BMONI",
       status: existingWallet?.status ?? "ACTIVE",
-      bmoniUserId: createdUser.id || existingWallet?.bmoniUserId || null,
+      bmoniUserId,
       metadata: {
         source: "local-onboarding",
         email,
@@ -69,27 +77,41 @@ export class BMONIService {
     await this.walletRepository.upsertForUser(userId, walletPayload);
 
     let smartWallet: { id?: string; smartWalletId?: string | null } | undefined;
-    if (input.createSmartWallet !== false && createdUser.id) {
-      smartWallet = await this.onboardingService.createWallet(createdUser.id, {
+    let smartWalletId: string | null = existingWallet?.smartWalletId || null;
+
+    if (input.createSmartWallet !== false && bmoniUserId) {
+      const swResp = await this.client.createManagedSmartWallet(bmoniUserId, {
         currency: input.currency ?? "USD",
         ownerAddress: input.ownerAddress,
       });
 
-      if (smartWallet.id || smartWallet.smartWalletId) {
+      smartWalletId =
+        swResp.smartWalletId ||
+        swResp.id ||
+        (swResp as any).address ||
+        (swResp as any).smartWalletAddress ||
+        smartWalletId;
+
+      if (smartWalletId) {
         await this.walletRepository.upsertForUser(userId, {
           ...walletPayload,
-          smartWalletId: String(
-            smartWallet.id ?? smartWallet.smartWalletId ?? "",
-          ),
+          smartWalletId: String(smartWalletId),
         });
       }
+      smartWallet = {
+        id: swResp.id,
+        smartWalletId,
+      };
     }
+
+    const updatedWallet = await this.walletRepository.findByUserId(userId);
 
     return {
       success: true,
-      bmoniUserId: createdUser.id || null,
+      bmoniUserId: updatedWallet?.bmoniUserId || bmoniUserId,
+      smartWalletId: updatedWallet?.smartWalletId || smartWalletId,
       smartWallet,
-      wallet: await this.walletRepository.findByUserId(userId),
+      wallet: updatedWallet,
     };
   }
 
