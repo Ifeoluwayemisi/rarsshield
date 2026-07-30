@@ -2,7 +2,6 @@ import { BMONIClient } from "./BMONIClient";
 import { WalletRepository } from "../../repositories/WalletRepository";
 import { FinancialInsightRepository } from "../../repositories/FinancialInsightRepository";
 import { UserRepository } from "../../repositories/UserRepository";
-import { OnboardingService } from "./services/onboarding.service";
 import { BalanceService } from "./services/balance.service";
 import { HealthService } from "./services/health.service";
 import { FinancialInsightService } from "../../services/FinancialInsightService";
@@ -13,7 +12,6 @@ export class BMONIService {
   private walletRepository = new WalletRepository();
   private financialInsightRepository = new FinancialInsightRepository();
   private userRepository = new UserRepository();
-  private onboardingService = new OnboardingService(this.client as never);
   private balanceService = new BalanceService(this.client as never);
   private healthService = new HealthService(this.client as never);
   private financialInsightService = new FinancialInsightService();
@@ -128,6 +126,37 @@ export class BMONIService {
 
   async getWallet(userId: string) {
     return this.walletRepository.findByUserId(userId);
+  }
+
+  async createOwnerProofChallenge(
+    userId: string,
+    input: { currency?: string; userOwnerAddress?: string } = {},
+  ) {
+    return this.client.createOwnerProofChallenge(userId, input);
+  }
+
+  async getOnboardingStatus(userId: string) {
+    return this.client.getOnboardingStatus(userId);
+  }
+
+  async startNigeriaOnboarding(
+    userId: string,
+    input: {
+      bvn?: string;
+      walletAddress?: string;
+      walletIndex?: string | number;
+      countryCode?: string;
+    } = {},
+  ) {
+    return this.client.startNigeriaOnboarding(userId, input);
+  }
+
+  async getWallets(userId: string) {
+    return this.client.getWallets(userId);
+  }
+
+  async getTransactions(userId: string) {
+    return this.client.getTransactions(userId);
   }
 
   async syncInsights(userId: string) {

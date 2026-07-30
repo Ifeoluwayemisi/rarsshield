@@ -131,7 +131,7 @@ export class BMONIClient {
           error: error?.response?.data || error?.message,
           status: error?.response?.status,
         },
-        "BMONI createUser API error"
+        "BMONI createUser API error",
       );
       const fallbackId = `usr_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 7)}`;
       return {
@@ -173,7 +173,7 @@ export class BMONIClient {
           error: error?.response?.data || error?.message,
           status: error?.response?.status,
         },
-        "BMONI createManagedSmartWallet API error"
+        "BMONI createManagedSmartWallet API error",
       );
       const fallbackWalletId = `0x${Math.random().toString(16).substring(2)}${Math.random().toString(16).substring(2)}`;
       return {
@@ -181,6 +181,92 @@ export class BMONIClient {
         smartWalletId: fallbackWalletId,
         _error: error?.response?.data || error?.message,
       };
+    }
+  }
+
+  async createOwnerProofChallenge(
+    userId: string,
+    input: Record<string, unknown> = {},
+  ) {
+    try {
+      const resp = await this.http.post(
+        `/v1/users/${encodeURIComponent(userId)}/smart-wallets/owner-proof-challenges`,
+        input,
+      );
+      return resp.data?.data || resp.data || {};
+    } catch (error: any) {
+      logger.error(
+        {
+          error: error?.response?.data || error?.message,
+          status: error?.response?.status,
+        },
+        "BMONI ownerProofChallenge API error",
+      );
+      return { _error: error?.response?.data || error?.message };
+    }
+  }
+
+  async getOnboardingStatus(userId: string) {
+    try {
+      const resp = await this.http.get(
+        `/v1/users/${encodeURIComponent(userId)}/onboarding/status`,
+      );
+      return resp.data?.data || resp.data || {};
+    } catch (error: any) {
+      logger.error(
+        {
+          error: error?.response?.data || error?.message,
+          status: error?.response?.status,
+        },
+        "BMONI onboardingStatus API error",
+      );
+      return {
+        status: "UNKNOWN",
+        _error: error?.response?.data || error?.message,
+      };
+    }
+  }
+
+  async startNigeriaOnboarding(
+    userId: string,
+    input: Record<string, unknown> = {},
+  ) {
+    try {
+      const resp = await this.http.post(
+        `/v1/users/${encodeURIComponent(userId)}/onboarding/start-nigeria`,
+        input,
+      );
+      return resp.data?.data || resp.data || {};
+    } catch (error: any) {
+      logger.error(
+        {
+          error: error?.response?.data || error?.message,
+          status: error?.response?.status,
+        },
+        "BMONI startNigeriaOnboarding API error",
+      );
+      return {
+        status: "FAILED",
+        _error: error?.response?.data || error?.message,
+      };
+    }
+  }
+
+  async getWallets(userId: string) {
+    try {
+      const resp = await this.http.get(
+        `/v1/users/${encodeURIComponent(userId)}/smart-wallets/account/wallets`,
+      );
+      return resp.data?.data || resp.data || [];
+    } catch (error: any) {
+      logger.error(
+        {
+          error: error?.response?.data || error?.message,
+          status: error?.response?.status,
+        },
+        "BMONI walletList API error",
+      );
+      return [];
     }
   }
 
@@ -222,6 +308,24 @@ export class BMONIClient {
         currency: "USD",
         status: "ERROR",
       };
+    }
+  }
+
+  async getTransactions(userId: string) {
+    try {
+      const resp = await this.http.get(
+        `/v1/users/${encodeURIComponent(userId)}/smart-wallets/account/transactions`,
+      );
+      return resp.data?.data || resp.data || [];
+    } catch (error: any) {
+      logger.error(
+        {
+          error: error?.response?.data || error?.message,
+          status: error?.response?.status,
+        },
+        "BMONI transactions API error",
+      );
+      return [];
     }
   }
 

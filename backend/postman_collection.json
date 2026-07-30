@@ -1,0 +1,543 @@
+{
+  "info": {
+    "name": "RARS Shield Backend API",
+    "description": "Postman collection for the RARS Shield backend MVP",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo@example.com\",\n  \"password\": \"DemoPass123!\",\n  \"name\": \"Demo User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo@example.com\",\n  \"password\": \"DemoPass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "forgot-password"]
+            }
+          }
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"YOUR_VERIFICATION_TOKEN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-email",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "verify-email"]
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"YOUR_RESET_TOKEN\",\n  \"password\": \"NewPass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "reset-password"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Demo User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Get Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings"]
+            }
+          }
+        },
+        {
+          "name": "Update Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notificationEmail\": true,\n  \"notificationSms\": false,\n  \"privacyMode\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "item": [
+        {
+          "name": "Create Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 2500,\n  \"currency\": \"USD\",\n  \"description\": \"Test transaction\",\n  \"beneficiary\": \"Demo beneficiary\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transactions"]
+            }
+          }
+        },
+        {
+          "name": "Get Transaction History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transactions"]
+            }
+          }
+        },
+        {
+          "name": "Get Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/transactions/balance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transactions", "balance"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analysis",
+      "item": [
+        {
+          "name": "Create Scam Analysis",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"TEXT\",\n  \"payload\": \"I received a message asking me to send money to a government office to unlock my account.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/analysis",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analysis"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wallet / BMONI",
+      "item": [
+        {
+          "name": "Onboard Wallet",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo@example.com\",\n  \"firstName\": \"Demo\",\n  \"lastName\": \"User\",\n  \"phoneNumber\": \"+2348012345678\",\n  \"countryCode\": \"NG\",\n  \"createSmartWallet\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet/onboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet", "onboard"]
+            }
+          }
+        },
+        {
+          "name": "Sync Wallet",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet", "sync"]
+            }
+          }
+        },
+        {
+          "name": "Get Wallet",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet", "me"]
+            }
+          }
+        },
+        {
+          "name": "Get Wallet Info",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet/info",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet", "info"]
+            }
+          }
+        },
+        {
+          "name": "Get Wallet Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet", "summary"]
+            }
+          }
+        },
+        {
+          "name": "Get Wallet Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet/balance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet", "balance"]
+            }
+          }
+        },
+        {
+          "name": "Get Wallet Transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet", "transactions"]
+            }
+          }
+        },
+        {
+          "name": "Owner Proof Challenge",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"CNGN\",\n  \"userOwnerAddress\": \"0x1234567890abcdef\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet/owner-proof-challenge",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet", "owner-proof-challenge"]
+            }
+          }
+        },
+        {
+          "name": "Get Onboarding Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet/onboarding/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet", "onboarding", "status"]
+            }
+          }
+        },
+        {
+          "name": "Start Nigeria Onboarding",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bvn\": \"22222222222\",\n  \"walletAddress\": \"0xabc123\",\n  \"walletIndex\": 0,\n  \"countryCode\": \"NGA\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet/onboarding/start-nigeria",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet", "onboarding", "start-nigeria"]
+            }
+          }
+        },
+        {
+          "name": "Get Wallets",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet/wallets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet", "wallets"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Financial Insights",
+      "item": [
+        {
+          "name": "Sync Insights",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/financial-insights/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "financial-insights", "sync"]
+            }
+          }
+        },
+        {
+          "name": "Get My Insights",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/financial-insights/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "financial-insights", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "Receive Webhook Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-webhook-signature", "value": "test-signature" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventType\": \"wallet.deposit.completed\",\n  \"data\": {\n    \"userId\": \"demo-user\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/webhooks/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "webhooks", "events"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

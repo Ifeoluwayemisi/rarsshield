@@ -5,7 +5,6 @@ const BMONIClient_1 = require("./BMONIClient");
 const WalletRepository_1 = require("../../repositories/WalletRepository");
 const FinancialInsightRepository_1 = require("../../repositories/FinancialInsightRepository");
 const UserRepository_1 = require("../../repositories/UserRepository");
-const onboarding_service_1 = require("./services/onboarding.service");
 const balance_service_1 = require("./services/balance.service");
 const health_service_1 = require("./services/health.service");
 const FinancialInsightService_1 = require("../../services/FinancialInsightService");
@@ -15,7 +14,6 @@ class BMONIService {
     walletRepository = new WalletRepository_1.WalletRepository();
     financialInsightRepository = new FinancialInsightRepository_1.FinancialInsightRepository();
     userRepository = new UserRepository_1.UserRepository();
-    onboardingService = new onboarding_service_1.OnboardingService(this.client);
     balanceService = new balance_service_1.BalanceService(this.client);
     healthService = new health_service_1.HealthService(this.client);
     financialInsightService = new FinancialInsightService_1.FinancialInsightService();
@@ -28,22 +26,29 @@ class BMONIService {
             throw new Error("Local user not found");
         }
         const existingWallet = await this.walletRepository.findByUserId(userId);
-        const email = input.email ?? localUser.email;
-        const firstName = input.firstName ?? localUser.name?.split(" ")[0] ?? "";
-        const lastName = input.lastName ?? localUser.name?.split(" ").slice(1).join(" ") ?? "";
-        const createdUser = await this.onboardingService.createUser({
+        const email = input.email || localUser.email;
+        const nameParts = (localUser.name || "").trim().split(" ");
+        const firstName = input.firstName || nameParts[0] || "User";
+        const lastName = input.lastName || nameParts.slice(1).join(" ") || "User";
+        const phoneNumber = input.phoneNumber || "+2348000000000";
+        const countryCode = input.countryCode || "NG";
+        const createdUser = await this.client.createUser({
             email,
             firstName,
             lastName,
-            phoneNumber: input.phoneNumber,
-            countryCode: input.countryCode,
+            phoneNumber,
+            countryCode,
         });
+        const bmoniUserId = createdUser.id ||
+            createdUser.userId ||
+            existingWallet?.bmoniUserId ||
+            `usr_${Date.now().toString(36)}`;
         const walletPayload = {
             balance: existingWallet?.balance ? Number(existingWallet.balance) : 0,
             currency: existingWallet?.currency ?? "USD",
             provider: "BMONI",
             status: existingWallet?.status ?? "ACTIVE",
-            bmoniUserId: createdUser.id || existingWallet?.bmoniUserId || null,
+            bmoniUserId,
             metadata: {
                 source: "local-onboarding",
                 email,
@@ -51,23 +56,36 @@ class BMONIService {
         };
         await this.walletRepository.upsertForUser(userId, walletPayload);
         let smartWallet;
-        if (input.createSmartWallet !== false && createdUser.id) {
-            smartWallet = await this.onboardingService.createWallet(createdUser.id, {
+        let smartWalletId = existingWallet?.smartWalletId || null;
+        if (input.createSmartWallet !== false && bmoniUserId) {
+            const swResp = await this.client.createManagedSmartWallet(bmoniUserId, {
                 currency: input.currency ?? "USD",
                 ownerAddress: input.ownerAddress,
             });
-            if (smartWallet.id || smartWallet.smartWalletId) {
+            smartWalletId =
+                swResp.smartWalletId ||
+                    swResp.id ||
+                    swResp.address ||
+                    swResp.smartWalletAddress ||
+                    smartWalletId;
+            if (smartWalletId) {
                 await this.walletRepository.upsertForUser(userId, {
                     ...walletPayload,
-                    smartWalletId: String(smartWallet.id ?? smartWallet.smartWalletId ?? ""),
+                    smartWalletId: String(smartWalletId),
                 });
             }
+            smartWallet = {
+                id: swResp.id,
+                smartWalletId,
+            };
         }
+        const updatedWallet = await this.walletRepository.findByUserId(userId);
         return {
             success: true,
-            bmoniUserId: createdUser.id || null,
+            bmoniUserId: updatedWallet?.bmoniUserId || bmoniUserId,
+            smartWalletId: updatedWallet?.smartWalletId || smartWalletId,
             smartWallet,
-            wallet: await this.walletRepository.findByUserId(userId),
+            wallet: updatedWallet,
         };
     }
     async syncWallet(userId) {
@@ -81,6 +99,21 @@ class BMONIService {
     }
     async getWallet(userId) {
         return this.walletRepository.findByUserId(userId);
+    }
+    async createOwnerProofChallenge(userId, input = {}) {
+        return this.client.createOwnerProofChallenge(userId, input);
+    }
+    async getOnboardingStatus(userId) {
+        return this.client.getOnboardingStatus(userId);
+    }
+    async startNigeriaOnboarding(userId, input = {}) {
+        return this.client.startNigeriaOnboarding(userId, input);
+    }
+    async getWallets(userId) {
+        return this.client.getWallets(userId);
+    }
+    async getTransactions(userId) {
+        return this.client.getTransactions(userId);
     }
     async syncInsights(userId) {
         const wallet = await this.walletRepository.findByUserId(userId);

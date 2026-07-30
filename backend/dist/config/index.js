@@ -23,6 +23,7 @@ const envSchema = zod_1.z.object({
     OPENAI_MODEL: zod_1.z.string().default("gpt-4.1-mini"),
     REDIS_URL: zod_1.z.string().url(),
     BMONI_BASE_URL: zod_1.z.string().url().optional(),
+    BMONI_API_BASE_URL: zod_1.z.string().url().optional(),
     BMONI_API_KEY: zod_1.z.string().optional(),
     USE_BMONI_SANDBOX: zod_1.z.string().optional(),
     WEBHOOK_SECRET: zod_1.z.string().optional(),
@@ -58,8 +59,8 @@ const config = {
     redisUrl: env.REDIS_URL,
     // BMONI integration
     bmoni: {
-        baseUrl: env.BMONI_BASE_URL || "https://embedded-dev.bmoni.com",
-        apiKey: env.BMONI_API_KEY || "",
+        baseUrl: env.BMONI_BASE_URL || env.BMONI_API_BASE_URL || "https://embedded-dev.bmoni.com",
+        apiKey: env.BMONI_API_KEY || "pk_a025cacbf33a_76fb864113f3540909de5b1da39cc146906e35b1c6d4d1e4",
         useSandbox: env.USE_BMONI_SANDBOX === "true",
     },
     email: {

@@ -31,6 +31,48 @@ router.get(
   },
 );
 
+router.post(
+  "/owner-proof-challenge",
+  authenticate,
+  async (req: AuthRequest, res: Response) => {
+    const result = await bmoniService.createOwnerProofChallenge(
+      req.userId!,
+      req.body ?? {},
+    );
+    res.json({ success: true, data: result });
+  },
+);
+
+router.get(
+  "/onboarding/status",
+  authenticate,
+  async (req: AuthRequest, res: Response) => {
+    const status = await bmoniService.getOnboardingStatus(req.userId!);
+    res.json({ success: true, data: status });
+  },
+);
+
+router.post(
+  "/onboarding/start-nigeria",
+  authenticate,
+  async (req: AuthRequest, res: Response) => {
+    const result = await bmoniService.startNigeriaOnboarding(
+      req.userId!,
+      req.body ?? {},
+    );
+    res.json({ success: true, data: result });
+  },
+);
+
+router.get(
+  "/wallets",
+  authenticate,
+  async (req: AuthRequest, res: Response) => {
+    const wallets = await bmoniService.getWallets(req.userId!);
+    res.json({ success: true, data: wallets });
+  },
+);
+
 router.get(
   "/balance",
   authenticate,
@@ -44,7 +86,7 @@ router.get(
   "/transactions",
   authenticate,
   async (req: AuthRequest, res: Response) => {
-    const transactions = await walletService.getTransactions(req.userId!);
+    const transactions = await bmoniService.getTransactions(req.userId!);
     res.json({ success: true, data: transactions });
   },
 );

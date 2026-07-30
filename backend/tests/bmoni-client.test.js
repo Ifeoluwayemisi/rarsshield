@@ -40,4 +40,27 @@ describe("BMONIClient", () => {
       email: "user@example.com",
     });
   });
+
+  it("retrieves onboarding status for a user", async () => {
+    const client = new BMONIClient();
+    const onboarding = await client.getOnboardingStatus("bmoni-user-123");
+
+    expect(onboarding).toMatchObject({
+      status: "ok",
+    });
+  });
+
+  it("starts Nigeria onboarding for a user", async () => {
+    const client = new BMONIClient();
+    const result = await client.startNigeriaOnboarding("bmoni-user-123", {
+      bvn: "22222222222",
+      walletAddress: "0xabc",
+      walletIndex: 0,
+    });
+
+    expect(result).toMatchObject({
+      id: "bmoni-user-123",
+      email: "user@example.com",
+    });
+  });
 });

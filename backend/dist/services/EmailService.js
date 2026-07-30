@@ -19,7 +19,9 @@ class EmailService {
             : undefined,
     });
     async sendMail(to, subject, html) {
-        if (!config_1.default.email.smtpHost || !config_1.default.email.smtpUser || !config_1.default.email.smtpPassword) {
+        if (!config_1.default.email.smtpHost ||
+            !config_1.default.email.smtpUser ||
+            !config_1.default.email.smtpPassword) {
             return { ok: false, reason: "smtp_not_configured" };
         }
         await this.transporter.sendMail({

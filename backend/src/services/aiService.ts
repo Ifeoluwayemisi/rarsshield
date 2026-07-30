@@ -1,35 +1,96 @@
-import OpenAI from "openai";
-import config from "../config";
+const OLLAMA_BASE_URL =
+  process.env.OLLAMA_BASE_URL || "http://localhost:11434/v1";
+const OLLAMA_API_KEY = process.env.OLLAMA_API_KEY || "";
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "llama3.1";
 
 export class AIService {
-  private client: OpenAI;
-
-  constructor() {
-    this.client = new OpenAI({ apiKey: config.openai.apiKey });
-  }
-
   async analyzeRisk(payload: { type: string; content: string }) {
-    const prompt = `Analyze the following financial content and return valid JSON only with keys: riskScore, riskLevel, explanation, recommendation, confidence. Content: ${payload.content}`;
-
     try {
-      const completion = await this.client.responses.create({
-        model: config.openai.model,
-        input: prompt,
-        temperature: 0.2,
-      });
+      const res = await fetch(
+        `${OLLAMA_BASE_URL.replace(/\/$/, "")}/chat/completions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(OLLAMA_API_KEY
+              ? { Authorization: `Bearer ${OLLAMA_API_KEY}` }
+              : {}),
+          },
+          body: JSON.stringify({
+            model: OLLAMA_MODEL,
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are a financial scam detection assistant. Return valid JSON with keys: riskScore, riskLevel, explanation, recommendation, confidence.",
+              },
+              {
+                role: "user",
+                content: `Analyze this message for scam risk. Message type: ${payload.type || "Unknown"}. Content: ${payload.content}`,
+              },
+            ],
+            temperature: 0.2,
+          }),
+        },
+      );
 
-      const rawOutput = this.extractTextFromResponse(completion);
-      const sanitized = rawOutput.trim();
+      if (!res.ok) throw new Error(`AI engine responded ${res.status}`);
 
-      try {
-        const parsed = JSON.parse(sanitized);
-        return parsed;
-      } catch (error) {
-        throw new Error("AI output was not valid JSON");
+      const result = (await res.json()) as Partial<{
+        choices?: Array<{
+          message?: { content?: string };
+        }>;
+      }>;
+
+      const content = result.choices?.[0]?.message?.content;
+      if (typeof content !== "string") {
+        throw new Error("AI engine returned no content");
       }
+
+      const parsed = this.parseJsonContent(content);
+      return this.normalizeResponse(parsed);
     } catch (error) {
       return this.fallbackAnalysis(payload.content);
     }
+  }
+
+  private parseJsonContent(content: string) {
+    const trimmed = content.trim();
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      const match = trimmed.match(/\{[\s\S]*\}/);
+      if (!match) {
+        throw new Error("AI output was not valid JSON");
+      }
+      return JSON.parse(match[0]);
+    }
+  }
+
+  private normalizeResponse(
+    result: Partial<{
+      riskScore?: number;
+      riskLevel?: string;
+      explanation?: string;
+      recommendation?: string;
+      confidence?: number;
+    }>,
+  ) {
+    const normalizedRiskLevel =
+      typeof result.riskLevel === "string" && result.riskLevel.trim()
+        ? result.riskLevel.toUpperCase()
+        : "LOW";
+
+    return {
+      riskScore: result.riskScore ?? 0,
+      riskLevel: normalizedRiskLevel,
+      explanation:
+        result.explanation ?? "No explanation provided by the AI engine.",
+      recommendation:
+        result.recommendation ??
+        "Do not send money or share credentials. Verify the request through an official channel before acting.",
+      confidence: typeof result.confidence === "number" ? result.confidence : 0,
+    };
   }
 
   private fallbackAnalysis(content: string) {
@@ -56,19 +117,5 @@ export class AIService {
         "Do not send money or share credentials. Verify the request through an official channel before acting.",
       confidence: 0.74,
     };
-  }
-
-  private extractTextFromResponse(completion: any) {
-    const outputItems = completion.output ?? [];
-    for (const item of outputItems) {
-      const outputContent = item.content ?? [];
-      for (const content of outputContent) {
-        if (content && typeof content.text === "string") {
-          return content.text;
-        }
-      }
-    }
-
-    return "";
   }
 }

@@ -1,37 +1,72 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AIService = void 0;
-const openai_1 = __importDefault(require("openai"));
-const config_1 = __importDefault(require("../config"));
+const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://localhost:11434/v1";
+const OLLAMA_API_KEY = process.env.OLLAMA_API_KEY || "";
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "llama3.1";
 class AIService {
-    client;
-    constructor() {
-        this.client = new openai_1.default({ apiKey: config_1.default.openai.apiKey });
-    }
     async analyzeRisk(payload) {
-        const prompt = `Analyze the following financial content and return valid JSON only with keys: riskScore, riskLevel, explanation, recommendation, confidence. Content: ${payload.content}`;
         try {
-            const completion = await this.client.responses.create({
-                model: config_1.default.openai.model,
-                input: prompt,
-                temperature: 0.2,
+            const res = await fetch(`${OLLAMA_BASE_URL.replace(/\/$/, "")}/chat/completions`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(OLLAMA_API_KEY ? { Authorization: `Bearer ${OLLAMA_API_KEY}` } : {}),
+                },
+                body: JSON.stringify({
+                    model: OLLAMA_MODEL,
+                    messages: [
+                        {
+                            role: "system",
+                            content: "You are a financial scam detection assistant. Return valid JSON with keys: riskScore, riskLevel, explanation, recommendation, confidence.",
+                        },
+                        {
+                            role: "user",
+                            content: `Analyze this message for scam risk. Message type: ${payload.type || "Unknown"}. Content: ${payload.content}`,
+                        },
+                    ],
+                    temperature: 0.2,
+                }),
             });
-            const rawOutput = this.extractTextFromResponse(completion);
-            const sanitized = rawOutput.trim();
-            try {
-                const parsed = JSON.parse(sanitized);
-                return parsed;
+            if (!res.ok)
+                throw new Error(`AI engine responded ${res.status}`);
+            const result = (await res.json());
+            const content = result.choices?.[0]?.message?.content;
+            if (typeof content !== "string") {
+                throw new Error("AI engine returned no content");
             }
-            catch (error) {
-                throw new Error("AI output was not valid JSON");
-            }
+            const parsed = this.parseJsonContent(content);
+            return this.normalizeResponse(parsed);
         }
         catch (error) {
             return this.fallbackAnalysis(payload.content);
         }
+    }
+    parseJsonContent(content) {
+        const trimmed = content.trim();
+        try {
+            return JSON.parse(trimmed);
+        }
+        catch {
+            const match = trimmed.match(/\{[\s\S]*\}/);
+            if (!match) {
+                throw new Error("AI output was not valid JSON");
+            }
+            return JSON.parse(match[0]);
+        }
+    }
+    normalizeResponse(result) {
+        const normalizedRiskLevel = typeof result.riskLevel === "string" && result.riskLevel.trim()
+            ? result.riskLevel.toUpperCase()
+            : "LOW";
+        return {
+            riskScore: result.riskScore ?? 0,
+            riskLevel: normalizedRiskLevel,
+            explanation: result.explanation ?? "No explanation provided by the AI engine.",
+            recommendation: result.recommendation ??
+                "Do not send money or share credentials. Verify the request through an official channel before acting.",
+            confidence: typeof result.confidence === "number" ? result.confidence : 0,
+        };
     }
     fallbackAnalysis(content) {
         const lowerContent = content.toLowerCase();
@@ -50,18 +85,6 @@ class AIService {
             recommendation: "Do not send money or share credentials. Verify the request through an official channel before acting.",
             confidence: 0.74,
         };
-    }
-    extractTextFromResponse(completion) {
-        const outputItems = completion.output ?? [];
-        for (const item of outputItems) {
-            const outputContent = item.content ?? [];
-            for (const content of outputContent) {
-                if (content && typeof content.text === "string") {
-                    return content.text;
-                }
-            }
-        }
-        return "";
     }
 }
 exports.AIService = AIService;

@@ -5,11 +5,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BmoniClient = void 0;
 const axios_1 = __importDefault(require("axios"));
+const config_1 = __importDefault(require("../../../config"));
 class BmoniClient {
     http;
     constructor() {
-        const baseURL = process.env.BMONI_API_BASE_URL || "https://embedded-dev.bmoni.com";
-        const apiKey = process.env.BMONI_API_KEY || "";
+        const baseURL = config_1.default.bmoni.baseUrl ||
+            process.env.BMONI_API_BASE_URL ||
+            process.env.BMONI_BASE_URL ||
+            "https://embedded-dev.bmoni.com";
+        const apiKey = config_1.default.bmoni.apiKey ||
+            process.env.BMONI_API_KEY ||
+            "pk_a025cacbf33a_76fb864113f3540909de5b1da39cc146906e35b1c6d4d1e4";
         this.http = axios_1.default.create({
             baseURL,
             headers: {

@@ -15,11 +15,6 @@ router.post("/login", async (req, res) => {
     const result = await authService.login(data);
     res.json({ success: true, data: result });
 });
-router.post("/google", async (req, res) => {
-    const data = (0, auth_validator_1.validateGoogleAuth)(req.body);
-    const result = await authService.googleAuth(data);
-    res.json({ success: true, data: result });
-});
 router.post("/forgot-password", async (req, res) => {
     const data = (0, auth_validator_1.validateForgotPassword)(req.body);
     const result = await authService.forgotPassword(data);
@@ -32,7 +27,9 @@ router.get("/verify-email", async (req, res) => {
         return;
     }
     await authService.verifyEmail(token);
-    res.type("html").send("<html><body><h2>Email verified successfully</h2><p>You can now return to the app.</p></body></html>");
+    res
+        .type("html")
+        .send("<html><body><h2>Email verified successfully</h2><p>You can now return to the app.</p></body></html>");
 });
 router.post("/verify-email", async (req, res) => {
     const data = (0, auth_validator_1.validateVerifyEmail)(req.body);

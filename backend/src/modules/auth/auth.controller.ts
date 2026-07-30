@@ -25,8 +25,6 @@ router.post("/login", async (req: Request, res: Response) => {
   res.json({ success: true, data: result });
 });
 
-
-
 router.post("/forgot-password", async (req: Request, res: Response) => {
   const data = validateForgotPassword(req.body);
   const result = await authService.forgotPassword(data);
@@ -41,9 +39,11 @@ router.get("/verify-email", async (req: Request, res: Response) => {
   }
 
   await authService.verifyEmail(token);
-  res.type("html").send(
-    "<html><body><h2>Email verified successfully</h2><p>You can now return to the app.</p></body></html>",
-  );
+  res
+    .type("html")
+    .send(
+      "<html><body><h2>Email verified successfully</h2><p>You can now return to the app.</p></body></html>",
+    );
 });
 
 router.post("/verify-email", async (req: Request, res: Response) => {

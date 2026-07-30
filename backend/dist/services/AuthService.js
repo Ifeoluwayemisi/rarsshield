@@ -13,6 +13,7 @@ const ValidationError_1 = require("../errors/ValidationError");
 const RefreshTokenRepository_1 = require("../repositories/RefreshTokenRepository");
 const client_1 = require("@prisma/client");
 const EmailService_1 = require("./EmailService");
+const logger_1 = require("../utils/logger");
 class AuthService {
     userRepository = new UserRepository_1.UserRepository();
     refreshTokenRepository = new RefreshTokenRepository_1.RefreshTokenRepository();
@@ -133,11 +134,21 @@ class AuthService {
     }
     async sendVerificationEmail(email, token) {
         const link = `${config_1.default.appUrl}/auth/verify-email?token=${token}`;
-        await this.emailService.sendMail(email, "Verify your RARS Shield email", `<p>Welcome to RARS Shield.</p><p>Verify your email by clicking <a href="${link}">here</a>.</p>`);
+        try {
+            await this.emailService.sendMail(email, "Verify your RARS Shield email", `<p>Welcome to RARS Shield.</p><p>Verify your email by clicking <a href="${link}">here</a>.</p>`);
+        }
+        catch (error) {
+            logger_1.logger.warn({ err: error, email }, "Failed to send verification email");
+        }
     }
     async sendPasswordResetEmail(email, token) {
         const link = `${config_1.default.appUrl}/auth/reset-password?token=${token}`;
-        await this.emailService.sendMail(email, "Reset your RARS Shield password", `<p>Click <a href="${link}">here</a> to reset your password.</p>`);
+        try {
+            await this.emailService.sendMail(email, "Reset your RARS Shield password", `<p>Click <a href="${link}">here</a> to reset your password.</p>`);
+        }
+        catch (error) {
+            logger_1.logger.warn({ err: error, email }, "Failed to send password reset email");
+        }
     }
     async createTokensForUser(userId) {
         const accessToken = this.signToken(userId, config_1.default.jwt.accessTokenSecret, config_1.default.jwt.accessTokenExpiresIn);

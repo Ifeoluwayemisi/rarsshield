@@ -23,12 +23,28 @@ router.get("/summary", auth_1.authenticate, async (req, res) => {
     const summary = await walletService.getWalletSummary(req.userId);
     res.json({ success: true, data: summary });
 });
+router.post("/owner-proof-challenge", auth_1.authenticate, async (req, res) => {
+    const result = await bmoniService.createOwnerProofChallenge(req.userId, req.body ?? {});
+    res.json({ success: true, data: result });
+});
+router.get("/onboarding/status", auth_1.authenticate, async (req, res) => {
+    const status = await bmoniService.getOnboardingStatus(req.userId);
+    res.json({ success: true, data: status });
+});
+router.post("/onboarding/start-nigeria", auth_1.authenticate, async (req, res) => {
+    const result = await bmoniService.startNigeriaOnboarding(req.userId, req.body ?? {});
+    res.json({ success: true, data: result });
+});
+router.get("/wallets", auth_1.authenticate, async (req, res) => {
+    const wallets = await bmoniService.getWallets(req.userId);
+    res.json({ success: true, data: wallets });
+});
 router.get("/balance", auth_1.authenticate, async (req, res) => {
     const balance = await walletService.getBalance(req.userId);
     res.json({ success: true, data: balance });
 });
 router.get("/transactions", auth_1.authenticate, async (req, res) => {
-    const transactions = await walletService.getTransactions(req.userId);
+    const transactions = await bmoniService.getTransactions(req.userId);
     res.json({ success: true, data: transactions });
 });
 router.post("/onboard", auth_1.authenticate, async (req, res) => {

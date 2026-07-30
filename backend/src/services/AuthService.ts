@@ -7,6 +7,7 @@ import { ValidationError } from "../errors/ValidationError";
 import { RefreshTokenRepository } from "../repositories/RefreshTokenRepository";
 import { Role } from "@prisma/client";
 import { EmailService } from "./EmailService";
+import { logger } from "../utils/logger";
 
 export class AuthService {
   private userRepository = new UserRepository();
@@ -28,7 +29,11 @@ export class AuthService {
       isEmailVerified: false,
     });
 
-    const verificationToken = this.signToken(user.id, config.jwt.accessTokenSecret, "1d");
+    const verificationToken = this.signToken(
+      user.id,
+      config.jwt.accessTokenSecret,
+      "1d",
+    );
     await this.sendVerificationEmail(user.email, verificationToken);
 
     return {
@@ -81,14 +86,20 @@ export class AuthService {
       return { message: "If an account exists, a reset email has been sent." };
     }
 
-    const resetToken = this.signToken(user.id, config.jwt.accessTokenSecret, "1h");
+    const resetToken = this.signToken(
+      user.id,
+      config.jwt.accessTokenSecret,
+      "1h",
+    );
     await this.sendPasswordResetEmail(user.email, resetToken);
 
     return { message: "If an account exists, a reset email has been sent." };
   }
 
   async resetPassword(payload: { token: string; password: string }) {
-    const decoded = jwt.verify(payload.token, config.jwt.accessTokenSecret) as { sub?: string };
+    const decoded = jwt.verify(payload.token, config.jwt.accessTokenSecret) as {
+      sub?: string;
+    };
     if (!decoded.sub) {
       throw new UnauthorizedError("Reset token invalid");
     }
@@ -105,7 +116,9 @@ export class AuthService {
   }
 
   async verifyEmail(token: string) {
-    const decoded = jwt.verify(token, config.jwt.accessTokenSecret) as { sub?: string };
+    const decoded = jwt.verify(token, config.jwt.accessTokenSecret) as {
+      sub?: string;
+    };
     if (!decoded.sub) {
       throw new UnauthorizedError("Verification token invalid");
     }
@@ -161,20 +174,28 @@ export class AuthService {
 
   private async sendVerificationEmail(email: string, token: string) {
     const link = `${config.appUrl}/auth/verify-email?token=${token}`;
-    await this.emailService.sendMail(
-      email,
-      "Verify your RARS Shield email",
-      `<p>Welcome to RARS Shield.</p><p>Verify your email by clicking <a href="${link}">here</a>.</p>`,
-    );
+    try {
+      await this.emailService.sendMail(
+        email,
+        "Verify your RARS Shield email",
+        `<p>Welcome to RARS Shield.</p><p>Verify your email by clicking <a href="${link}">here</a>.</p>`,
+      );
+    } catch (error) {
+      logger.warn({ err: error, email }, "Failed to send verification email");
+    }
   }
 
   private async sendPasswordResetEmail(email: string, token: string) {
     const link = `${config.appUrl}/auth/reset-password?token=${token}`;
-    await this.emailService.sendMail(
-      email,
-      "Reset your RARS Shield password",
-      `<p>Click <a href="${link}">here</a> to reset your password.</p>`,
-    );
+    try {
+      await this.emailService.sendMail(
+        email,
+        "Reset your RARS Shield password",
+        `<p>Click <a href="${link}">here</a> to reset your password.</p>`,
+      );
+    } catch (error) {
+      logger.warn({ err: error, email }, "Failed to send password reset email");
+    }
   }
 
   private async createTokensForUser(userId: string) {
